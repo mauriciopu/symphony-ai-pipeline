@@ -1,0 +1,41 @@
+{
+  "project": {
+    "name": "My Project",
+    "repo_owner": "my-github-org",
+    "repo_name": "my-repo",
+    "base_branch": "main"
+  },
+  "linear": {
+    "team": "Engineering",
+    "project": "My Project"
+  },
+  "supabase": {
+    "project_id": "your-supabase-project-id",
+    "enabled": false
+  },
+  "stack": {
+    "build_cmd": "pnpm turbo build",
+    "test_cmd": "pnpm turbo test",
+    "lint_cmd": "pnpm turbo lint",
+    "typecheck_cmd": "pnpm turbo typecheck",
+    "dev_cmd": "pnpm turbo dev",
+    "install_cmd": "pnpm install"
+  },
+  "conventions": {
+    "coverage_threshold": 80,
+    "max_function_lines": 30,
+    "commit_format": "conventional",
+    "branch_prefix": "feat/",
+    "language": "typescript"
+  },
+  "domain": {
+    "domain_path": "src/domain/",
+    "router_path": "src/routers/",
+    "public_router_whitelist": ["auth.router.ts", "health.router.ts"],
+    "forbidden_domain_imports": ["infrastructure", "repositories", "prisma", "database"]
+  },
+  "plans": {
+    "directory": "docs/plans/",
+    "state_file": "docs/project-state.md"
+  }
+}

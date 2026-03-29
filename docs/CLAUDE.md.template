@@ -1,0 +1,44 @@
+# CLAUDE.md — {Your Project Name}
+
+## Build & Run
+```bash
+{install_cmd}
+{build_cmd}
+{dev_cmd}
+{test_cmd}
+{lint_cmd}
+{typecheck_cmd}
+```
+
+## Stack
+- **Framework**: {e.g., Next.js 15, Django 5, Spring Boot 3, Rails 7}
+- **Language**: {e.g., TypeScript strict, Python 3.12, Go 1.22}
+- **Database**: {e.g., PostgreSQL, MySQL, MongoDB}
+- **Testing**: {e.g., Vitest, pytest, JUnit, Go testing}
+- **CI/CD**: {e.g., GitHub Actions, GitLab CI}
+
+## Mandatory Practices
+- **TDD**: Tests FIRST — write test, see it fail, implement, refactor
+- **DDD**: Aggregates, Value Objects, Domain Events, Repository pattern
+- **Security**: OWASP Top 10 awareness at every layer
+
+## Conventions
+- Variable/function names in ENGLISH
+- No `any` types (TypeScript) / no `object` (Python typing)
+- Functions < 30 lines
+- Conventional commits: `feat(module):`, `fix(module):`, `test(module):`
+- `data-testid` on ALL interactive UI elements (for E2E testing)
+
+## Project Structure
+```
+{your project structure here}
+```
+
+## Planning Artifacts
+- Code generation plans: `{plans_directory}`
+- Requirements: `{requirements_path}`
+
+## Project Tracker
+- **Tool**: {Linear / Jira / GitHub Issues}
+- **Team**: {team name}
+- **Project**: {project name}

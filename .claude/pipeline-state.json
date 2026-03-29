@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "status": "idle",
+  "unit": null,
+  "epic_id": null,
+  "branch": null,
+  "phase": "idle",
+  "phase_index": 0,
+  "current_story": null,
+  "current_task": null,
+  "attempt": 0,
+  "max_attempts": 3,
+  "gates": {
+    "mcp_health": null,
+    "hierarchy_discovery": null,
+    "plan_coverage": null,
+    "build": null,
+    "lint": null,
+    "test": null,
+    "typecheck": null,
+    "supabase_check": null,
+    "reviewer": null,
+    "smoke_test": null,
+    "auditor": null
+  },
+  "stories_done": [],
+  "tasks_done": [],
+  "tasks_failed": [],
+  "started_at": null,
+  "updated_at": null,
+  "last_commit": null,
+  "pr_number": null
+}

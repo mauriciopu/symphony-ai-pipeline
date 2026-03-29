@@ -1,0 +1,94 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Agent",
+      "TodoWrite",
+      "Bash(*)",
+      "mcp__linear__*",
+      "mcp__supabase__*",
+      "mcp__playwright__*",
+      "mcp__context7__*",
+      "mcp__github__*"
+    ],
+    "deny": [
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf .:*)",
+      "Bash(rm -rf .git:*)",
+      "Bash(rm -rf ~:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git checkout .:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master:*)",
+      "Bash(*--no-verify*)",
+      "Bash(*DROP DATABASE*)",
+      "Bash(*DROP TABLE*)",
+      "Bash(git add *.env*)",
+      "Bash(git add *.pem*)",
+      "Bash(git add *.key*)",
+      "Bash(git add *credentials*)",
+      "Bash(*gh pr close*)",
+      "Bash(*gh pr merge*)",
+      "Bash(*git merge*master*)",
+      "Bash(*git merge*main*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/prevent-dangerous-ops.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/architecture-boundary.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auth-coverage.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/test-quality.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/feedback-enforcer.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pipeline-gate.sh \"$TOOL_INPUT\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-tool-telemetry.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/deferred-work-check.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enableAllProjectMcpServers": true
+}

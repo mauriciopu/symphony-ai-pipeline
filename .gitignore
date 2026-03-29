@@ -1,0 +1,15 @@
+# State files (generated at runtime)
+.claude/pipeline-audit.jsonl
+.claude/blocked-notification.json
+.claude/dashboard/monitor.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/

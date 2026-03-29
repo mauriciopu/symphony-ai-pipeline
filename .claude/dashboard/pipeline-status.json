@@ -1,0 +1,23 @@
+{
+  "heartbeat": null,
+  "lastActiveSession": null,
+  "currentPhase": {
+    "unit": null,
+    "unitName": null,
+    "story": null,
+    "storyTitle": null,
+    "task": null,
+    "taskTitle": null,
+    "agent": null,
+    "phase": "Idle"
+  },
+  "pipelineProgress": {
+    "totalStories": 0,
+    "completedStories": 0,
+    "totalTasks": 0,
+    "completedTasks": 0
+  },
+  "recentToolCalls": [],
+  "agentHistory": [],
+  "testExecution": null
+}
