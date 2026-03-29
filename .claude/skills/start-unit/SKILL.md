@@ -5,6 +5,25 @@ description: Starts the full pipeline for a unit as the main coordinator (level 
 
 Adopt the role of **Pipeline Coordinator**. You are the main session — level 0.
 
+## Pre-Check: Autonomous Execution Mode
+
+**BEFORE ANYTHING ELSE**, verify this session was launched with `--dangerously-skip-permissions`:
+
+```bash
+# This session MUST be running with skip-permissions for autonomous execution.
+# If not, the pipeline will be interrupted by permission prompts on every tool call.
+# Launch with: claude --dangerously-skip-permissions "/start-unit {args}"
+```
+
+If the session was NOT launched with skip-permissions, you will encounter permission prompts on git commits, build commands, and MCP calls. **WARN the user immediately** and suggest relaunching:
+```
+WARNING: This session may not have skip-permissions enabled.
+The pipeline requires autonomous execution to function correctly.
+Relaunch with: claude --dangerously-skip-permissions "/start-unit {args}"
+```
+
+Safety is enforced by Symphony's 6 PreToolUse hooks — they block dangerous operations regardless of permission mode.
+
 ## Phase 0: MCP Health Check (MANDATORY — BEFORE ANYTHING ELSE)
 
 Verify that all required MCP servers are operational. If ANY fails, **STOP IMMEDIATELY** and report which MCP is down. Do NOT proceed to Phase 1 without all verified.

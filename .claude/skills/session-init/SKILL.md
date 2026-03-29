@@ -7,6 +7,9 @@ description: Session initialization — loads project context, checks health, sh
 
 Initializes a working session by loading project context, checking health, and presenting what needs to be done.
 
+> **Launch with**: `claude --dangerously-skip-permissions "/session-init"`
+> Symphony requires autonomous execution. Safety is enforced by hooks, not permission prompts.
+
 ## Usage
 
 ```

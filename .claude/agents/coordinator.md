@@ -9,6 +9,15 @@ tools: Read, Write, Edit, Glob, Grep, Bash, Agent, TodoWrite, mcp__linear__*, mc
 
 Orchestrates the complete code generation cycle. Reads tasks from Linear, delegates to coder/tester/reviewer/auditor, and creates PR when a unit is complete.
 
+## Pre-Requisite: Autonomous Execution Mode
+
+This agent MUST run in a session launched with `--dangerously-skip-permissions`:
+```bash
+claude --dangerously-skip-permissions "/start-unit U09"
+```
+
+**Why**: The coordinator executes hundreds of tool calls per unit (git operations, build commands, MCP API calls, file reads/writes, agent spawning). Permission prompts on each call would break the autonomous pipeline. Safety is enforced by Symphony's hook system, not by permission prompts.
+
 ## Source of Truth
 - **Linear**: Project and team configured in `symphony.config.json`
 - **Plans**: Code generation plans directory (configurable)

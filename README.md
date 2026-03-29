@@ -150,19 +150,28 @@ Configure them in your Claude Code MCP settings.
 
 ### 5. Run
 
+Symphony requires **autonomous execution** — agents must run without permission prompts for every tool call. Always launch Claude Code with `--dangerously-skip-permissions`:
+
 ```bash
+# REQUIRED: All Symphony sessions must run with skip-permissions
+# This allows agents to execute build/test/commit/MCP calls autonomously
+
 # Initialize a session
-claude "/session-init"
+claude --dangerously-skip-permissions "/session-init"
 
 # Check project health
-claude "/harness-check"
+claude --dangerously-skip-permissions "/harness-check"
 
 # Provision tasks from a plan
-claude "/create-unit-tasks u09-inventory"
+claude --dangerously-skip-permissions "/create-unit-tasks u09-inventory"
 
-# Execute a unit pipeline
-claude "/start-unit U09"
+# Execute a unit pipeline (this is the main autonomous run)
+claude --dangerously-skip-permissions "/start-unit U09"
 ```
+
+> **Why `--dangerously-skip-permissions`?** The pipeline executes hundreds of tool calls per unit (git commits, build commands, MCP API calls, file writes). Without this flag, each call would require manual approval, making autonomous execution impossible. Safety is enforced by Symphony's own hooks (pipeline-gate.sh, prevent-dangerous-ops.sh, architecture-boundary.sh, etc.) — not by permission prompts.
+
+> **Safety net**: Even with skip-permissions, Symphony's 6 PreToolUse hooks still block dangerous operations (force push, rm -rf, dropping tables, committing secrets, skipping phases). The hooks ARE the permission system.
 
 ## Core Principles
 
