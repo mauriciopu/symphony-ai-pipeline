@@ -109,7 +109,26 @@ Cross-reference the code generation plan against the Linear tasks:
 4. If uncovered is EMPTY: `gate-pass plan_coverage`
 5. If uncovered is NOT EMPTY: **ABORT** — re-run `/create-unit-tasks --force`
 
-### Phase 2: Execute Tasks (Story → Task, two-level loop)
+### Phase 2: Execute Tasks
+
+The coordinator supports two execution modes: **Sequential** (default) and **Parallel**.
+
+#### Mode Selection
+After Phase 1.5, check the dependency graph from create-unit-tasks:
+- If ALL tasks are sequential (each depends on the previous): use **Sequential mode**
+- If there are independent tasks that can run concurrently: use **Parallel mode**
+
+```bash
+# Switch to parallel mode (only allowed before Phase 2 starts)
+node .claude/hooks/pipeline-advance.js set-mode parallel
+
+# Load dependency graph (from the epic's DAG comment or a file)
+node .claude/hooks/pipeline-advance.js set-dependency-graph ./dag.json
+```
+
+---
+
+### Phase 2A: Sequential Mode (default)
 
 The coordinator iterates **Stories**, then **Tasks within each Story**.
 
@@ -207,11 +226,93 @@ Tests: X new tests, Y total passing
 Commit: [commit hash]
 ```
 
+---
+
+### Phase 2B: Parallel Mode (multi-track execution)
+
+When the dependency graph shows independent tasks, the coordinator becomes a **scheduler** that dispatches up to 3 concurrent agents in isolated worktrees.
+
+#### How it works
+
+1. **Load the DAG** from the epic description (`<!-- SYMPHONY_DAG: {...} -->`) or a file:
+   ```bash
+   node .claude/hooks/pipeline-advance.js set-dependency-graph ./dag.json
+   ```
+
+2. **Get ready tasks** — tasks whose dependencies are all satisfied:
+   ```bash
+   node .claude/hooks/pipeline-advance.js next-tasks
+   # Output: ["TASK-001", "TASK-003", "TASK-005"]
+   ```
+
+3. **Dispatch agents** — for each ready task (up to `max_concurrency`):
+   ```bash
+   # Reserve a track
+   node .claude/hooks/pipeline-advance.js start-track track-1 TASK-001 STORY-001
+
+   # Create worktree
+   bash .claude/hooks/worktree-manager.sh create track-1 feat/unit-branch
+   ```
+
+   Spawn Agent with `isolation: "worktree"`:
+   ```
+   Agent(
+     subagent_type: "coder",
+     isolation: "worktree",
+     prompt: "## Track: track-1\n## Task: TASK-001\n{full task description}\n## Role: {expertise}\n..."
+   )
+   ```
+
+   The subagent runs the FULL cycle internally in its worktree:
+   - **Code** → write tests first, then implementation
+   - **Test** → run all 6 gates (build, lint, test, typecheck, smoke, testid-contract)
+   - **Review** → self-review against checklist
+   - **Commit** → `git commit` in the worktree
+
+4. **When an agent completes**:
+   ```bash
+   # Record completion
+   node .claude/hooks/pipeline-advance.js track-done track-1 <commit_sha>
+
+   # Merge worktree into feature branch
+   bash .claude/hooks/worktree-manager.sh merge track-1 feat/unit-branch
+
+   # Clean up
+   bash .claude/hooks/worktree-manager.sh cleanup track-1
+
+   # Update Linear
+   mcp__linear__save_issue(taskId, state: "Done")
+   ```
+
+5. **Fill freed slots** — call `next-tasks` again to dispatch more tasks.
+
+6. **Handle merge conflicts**:
+   - If merge fails: block the track, continue others
+   - After conflicting track merges, retry the blocked track
+   - If conflict persists after 2 retries: escalate to human
+
+7. **Repeat** until all tasks are done or failed, then proceed to Phase 3.
+
+#### Parallel Mode Constraints
+- Max 3 concurrent tracks (configurable in `symphony.config.json`)
+- Only the COORDINATOR makes Linear/GitHub MCP calls (subagents have no MCP access)
+- Each subagent works in an isolated worktree — no shared state except via git merge
+- The coordinator runs `/compact` after merging each batch, not per-task
+- Tasks in the same parallel group MUST NOT modify the same files (enforced by create-unit-tasks)
+
+#### Track Status
+```bash
+node .claude/hooks/pipeline-advance.js tracks-status
+# Shows all active tracks with their phases, gates, and attempts
+```
+
+---
+
 ## Context Management (CRITICAL)
-- After EVERY task completion: run `/compact` to compress context
+- **Sequential mode**: After EVERY task completion, run `/compact`
+- **Parallel mode**: After EVERY merge batch, run `/compact`
 - Subagents are disposable: each gets fresh context, let them read files themselves
-- One task at a time: complete full pipeline before starting next
-- Never accumulate: commit after each task
+- Never accumulate: commit after each task (within its worktree)
 
 ## Rules
 - ALWAYS read the plan before delegating any task

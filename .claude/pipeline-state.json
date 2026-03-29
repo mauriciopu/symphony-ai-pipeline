@@ -1,6 +1,8 @@
 {
-  "version": 2,
+  "version": 3,
   "status": "idle",
+  "mode": "sequential",
+  "max_concurrency": 3,
   "unit": null,
   "epic_id": null,
   "branch": null,
@@ -23,11 +25,13 @@
     "smoke_test": null,
     "auditor": null
   },
+  "tracks": {},
+  "dependency_graph": {},
   "stories_done": [],
   "tasks_done": [],
   "tasks_failed": [],
   "started_at": null,
-  "updated_at": null,
+  "updated_at": "2026-03-29T16:09:19.723Z",
   "last_commit": null,
   "pr_number": null
 }

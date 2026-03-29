@@ -1,0 +1,23 @@
+{
+  "_schema": {
+    "description": "TestID Contract Registry — source of truth for all data-testid values",
+    "version": "1.0",
+    "naming_rules": {
+      "containers": "{module}-{component} (static, e.g., bellboy-dashboard)",
+      "sections": "{semantic-name} (static, e.g., pending-deliveries)",
+      "list_items": "{entity}-card-{id} or {entity}-row-{id} (dynamic suffix, spec uses static prefix)",
+      "actions": "{verb}-{entity}-btn (static, e.g., claim-task-btn)",
+      "forms": "{entity}-form (static)",
+      "inputs": "{field}-input (static)",
+      "submit": "{entity}-submit-btn (static)",
+      "loading": "{module}-loading (static)",
+      "empty": "{module}-empty or no-{items} (static)"
+    },
+    "rules": [
+      "E2E specs MUST use the static prefix, never the dynamic full ID",
+      "Every interactive element MUST have a data-testid",
+      "TestIDs MUST be registered here before use",
+      "Dynamic testIDs use the pattern: static-prefix-{entityId}"
+    ]
+  }
+}

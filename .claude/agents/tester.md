@@ -69,8 +69,18 @@ Expected: starts without crash within 15 seconds
 - NEVER paste full stack traces — extract: error message + file:line + 1 line of context
 - Max report size: 30 lines per gate, 100 lines total
 
+### Gate 6: TestID Contract Validation
+```bash
+node .claude/hooks/validate-testid-contract.js
+```
+Expected: zero errors. Validates that:
+- All contract testIDs exist in component files
+- All spec `getByTestId` calls have matching component testIDs
+- No dynamic template literals used directly in spec `getByTestId` calls
+- New testIDs are registered in the contract registry
+
 ## Rules
 - NEVER modify code — read-only agent
-- ALWAYS execute ALL 5 gates even if one fails early
+- ALWAYS execute ALL 6 gates even if one fails early
 - Report EXACT file:line for every failure (but max 3 per gate)
 - Include coverage percentage

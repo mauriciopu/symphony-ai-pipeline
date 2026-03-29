@@ -44,6 +44,14 @@ Quality gate before committing. Read-only — never modifies code.
 - [ ] Consistent naming conventions
 - [ ] data-testid on interactive UI elements
 
+### TestID Contract Compliance
+- [ ] TestIDs match the contract table in the task description
+- [ ] No invented testIDs outside the contract
+- [ ] Dynamic testIDs use `{prefix}-{id}` pattern (prefix is static, queryable)
+- [ ] E2E specs use correct auth storage state for the tested role (not `.auth/admin.json` for bellboy tests)
+- [ ] Seed data references use `SEED_IDS` from data.fixture.ts, not hardcoded UUIDs
+- [ ] No property ID mismatch (no `b0000000-0000-0000-0000-` pattern)
+
 ## Verdict
 - **APPROVE**: All checks pass
 - **REJECT**: Any security violation or multiple quality issues

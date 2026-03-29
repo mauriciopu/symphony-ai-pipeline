@@ -37,5 +37,17 @@
   "plans": {
     "directory": "docs/plans/",
     "state_file": "docs/project-state.md"
+  },
+  "parallel": {
+    "enabled": true,
+    "max_concurrency": 3,
+    "merge_strategy": "no-ff",
+    "conflict_resolution": "block-track"
+  },
+  "testing": {
+    "testid_contract_file": ".claude/hooks/testid-contract.json",
+    "seed_fixture_file": "e2e/fixtures/data.fixture.ts",
+    "auth_storage_dir": ".auth/",
+    "bad_property_id_pattern": "b0000000-0000-0000-0000-"
   }
 }

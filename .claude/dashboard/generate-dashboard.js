@@ -124,14 +124,34 @@ const PHASES = [
 ];
 const phaseIdx = PHASES.findIndex(p => p.id === P.phase);
 const isActive = P.phase && P.phase !== 'idle';
+const isParallel = P.mode === 'parallel';
+const tracks = P.tracks || {};
+const trackEntries = Object.entries(tracks).filter(([,t]) => t.status === 'active');
 const gateEntries = Object.entries(P.gates || {});
 const gatesPassed = gateEntries.filter(([,v]) => v === 'pass').length;
 const gatesFailed = gateEntries.filter(([,v]) => v === 'fail').length;
 
+function renderTracks() {
+  if (!isParallel || trackEntries.length === 0) return '';
+  return '<div class="card" style="margin-bottom:16px;border-top:2px solid var(--cyan)"><h2>Parallel Tracks (' + trackEntries.length + '/' + (P.max_concurrency||3) + ')</h2>' +
+    trackEntries.map(([id, t]) => {
+      const phaseLabel = (t.phase||'').replace('phase2_track_','').toUpperCase();
+      const gateStr = Object.entries(t.gates||{}).map(([k,v]) => k+':'+(v||'...')).join(' ');
+      return '<div style="display:flex;align-items:center;gap:12px;padding:8px;margin:4px 0;background:#0e0e1e;border-radius:6px;border-left:3px solid var(--cyan)">' +
+        '<span style="color:var(--cyan);font-weight:700;font-family:monospace;min-width:60px">' + id + '</span>' +
+        '<span style="color:var(--text-bright);min-width:80px">' + (t.task_id||'—') + '</span>' +
+        '<span class="phase-chip active" style="font-size:10px;padding:3px 8px">' + phaseLabel + '</span>' +
+        '<span style="color:var(--text-dim);font-size:10px">' + gateStr + '</span>' +
+        '<span style="color:var(--text-dim);font-size:10px;margin-left:auto">attempt ' + (t.attempt||0) + '/3</span>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+}
+
 document.body.innerHTML = \`
 <div class="header">
   <div class="logo">Symphony <span>Pipeline</span></div>
-  <div style="color:var(--text-dim);font-size:11px;font-family:monospace">Monitor v2 &mdash; \${timeAgo(T.heartbeat)}</div>
+  <div style="color:var(--text-dim);font-size:11px;font-family:monospace">\${isParallel ? 'PARALLEL ('+trackEntries.length+'/'+( P.max_concurrency||3)+')' : 'SEQUENTIAL'} &mdash; \${timeAgo(T.heartbeat)}</div>
 </div>
 <div class="grid">
   <div class="card"><h2>Pipeline</h2><div class="stat">\${isActive ? P.phase.replace('phase2_task_','').replace('phase','P').toUpperCase() : 'IDLE'}</div><div class="stat-label">\${isActive ? P.unit + ' on ' + (P.branch||'—') : 'No active unit'}</div></div>
@@ -142,6 +162,7 @@ document.body.innerHTML = \`
   let cls = i === phaseIdx ? 'active' : (phaseIdx > 0 && i < phaseIdx) ? 'done' : 'pending';
   return '<span class="phase-chip '+cls+'">'+p.label+'</span>' + (i < PHASES.length-1 ? '<span class="phase-arrow">&rarr;</span>' : '');
 }).join('')}</div></div>
+\${renderTracks()}
 <div class="grid-2">
   <div class="card"><h2>Gates</h2><div class="gate-grid">\${gateEntries.map(([k,v]) => '<div class="gate '+(v||'pending')+'"><span>'+(v==='pass'?'\\u2713':v==='fail'?'\\u2717':'\\u25CB')+'</span><span>'+k+'</span><span style="font-size:10px">'+(v||'pending')+'</span></div>').join('')}</div></div>
   <div class="card"><h2>Context</h2>

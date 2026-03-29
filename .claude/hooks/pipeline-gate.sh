@@ -19,15 +19,62 @@ if [ ! -f "$STATE_FILE" ]; then
   exit 0
 fi
 
-# Read current phase
-PHASE=$(node -e "
+# Read current phase and mode
+STATE_INFO=$(node -e "
   const s = JSON.parse(require('fs').readFileSync('$STATE_FILE','utf8'));
-  console.log(s.phase || 'idle');
+  console.log(JSON.stringify({
+    phase: s.phase || 'idle',
+    mode: s.mode || 'sequential',
+    version: s.version || 2
+  }));
 " 2>/dev/null)
+
+PHASE=$(echo "$STATE_INFO" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).phase))" 2>/dev/null)
+MODE=$(echo "$STATE_INFO" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).mode))" 2>/dev/null)
+VERSION=$(echo "$STATE_INFO" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).version))" 2>/dev/null)
 
 # If idle, nothing to enforce
 if [ "$PHASE" = "idle" ] || [ -z "$PHASE" ]; then
   exit 0
+fi
+
+# === PARALLEL MODE: per-track gate enforcement ===
+# In parallel mode, agents run in worktrees. The SYMPHONY_TRACK env var
+# identifies which track this agent belongs to. Gates apply per-track.
+if [ "$MODE" = "parallel" ] && [ -n "$SYMPHONY_TRACK" ]; then
+  TRACK_INFO=$(node -e "
+    const s = JSON.parse(require('fs').readFileSync('$STATE_FILE','utf8'));
+    const t = (s.tracks || {})['$SYMPHONY_TRACK'];
+    if (t) console.log(JSON.stringify({phase: t.phase, attempt: t.attempt, status: t.status}));
+    else console.log('null');
+  " 2>/dev/null)
+
+  if [ "$TRACK_INFO" = "null" ] || [ -z "$TRACK_INFO" ]; then
+    # Track not found — agent not in a valid track context, allow (non-track operations)
+    : # fall through to global gates
+  else
+    TRACK_PHASE=$(echo "$TRACK_INFO" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).phase))" 2>/dev/null)
+    TRACK_ATTEMPT=$(echo "$TRACK_INFO" | node -e "process.stdin.on('data',d=>console.log(JSON.parse(d).attempt))" 2>/dev/null)
+
+    # Per-track commit gate: no commit before review phase
+    if echo "$COMMAND" | grep -qiE 'git\s+commit'; then
+      if [ "$TRACK_PHASE" = "phase2_track_active" ] || [ "$TRACK_PHASE" = "phase2_track_testing" ]; then
+        echo "BLOCKED by Pipeline Gate (track $SYMPHONY_TRACK): Cannot commit in track phase '$TRACK_PHASE'"
+        echo "Commit is only allowed after reviewer approval (phase2_track_committing)."
+        exit 1
+      fi
+    fi
+
+    # Per-track max attempts
+    if [ "$TRACK_ATTEMPT" -ge 3 ] 2>/dev/null; then
+      echo "BLOCKED by Pipeline Gate (track $SYMPHONY_TRACK): Max attempts exceeded"
+      echo "Follow Rework Protocol or contact coordinator."
+      exit 1
+    fi
+
+    # In parallel mode with a valid track, skip global sequential gates
+    # (global gates like no-push-before-auditor still apply below)
+  fi
 fi
 
 # === GATE 0: Pipeline blocked — human intervention required ===

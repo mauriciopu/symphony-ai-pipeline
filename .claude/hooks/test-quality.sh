@@ -53,6 +53,41 @@ if [ -n "$E2E_FILES" ]; then
   done <<< "$E2E_FILES"
 fi
 
+# --- Check 3: Auth storage state mismatch in e2e specs ---
+# Detect specs using .auth/admin.json when the test targets a specific role
+if [ -n "$E2E_FILES" ]; then
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    BASENAME=$(basename "$file" .spec.ts)
+    BASENAME=$(echo "$BASENAME" | sed 's/\.test$//')
+
+    # If filename suggests a role (bellboy, restaurant, executive, housekeeping, etc.)
+    # but storage state uses admin, flag it
+    if echo "$BASENAME" | grep -qiE '(bellboy|restaurant|executive|housekeeping|maintenance|fraud)'; then
+      ADMIN_AUTH=$(grep -nE "storageState.*admin" "$file" 2>/dev/null | head -3)
+      if [ -n "$ADMIN_AUTH" ]; then
+        ROLE=$(echo "$BASENAME" | grep -oiE '(bellboy|restaurant|executive|housekeeping|maintenance|fraud)' | head -1)
+        VIOLATIONS="$VIOLATIONS\n  $file: Uses .auth/admin.json but tests ${ROLE} role."
+        VIOLATIONS="$VIOLATIONS\n  Use .auth/${ROLE}.json instead for correct RBAC testing.\n"
+      fi
+    fi
+  done <<< "$E2E_FILES"
+fi
+
+# --- Check 4: Seed ID consistency (wrong property ID pattern) ---
+ALL_STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -E '\.(ts|tsx)$')
+if [ -n "$ALL_STAGED" ]; then
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # Flag the known-bad property ID pattern (b0000000-...)
+    BAD_IDS=$(grep -nE "b0000000-0000-0000-0000-" "$file" 2>/dev/null | head -3)
+    if [ -n "$BAD_IDS" ]; then
+      VIOLATIONS="$VIOLATIONS\n  $file: Contains incorrect property ID pattern (b0000000-...)."
+      VIOLATIONS="$VIOLATIONS\n  Use SEED_IDS.PROPERTY_ID from data.fixture.ts instead.\n"
+    fi
+  done <<< "$ALL_STAGED"
+fi
+
 if [ -n "$VIOLATIONS" ]; then
   echo "BLOCKED: Test quality violation"
   echo ""
@@ -62,6 +97,8 @@ if [ -n "$VIOLATIONS" ]; then
   echo "HOW TO FIX:"
   echo "  - Skipped tests: add // SKIP: <reason> on the line above"
   echo "  - CSS selectors in e2e: use page.getByTestId('my-element') instead"
+  echo "  - Auth mismatch: use the correct role's storage state (.auth/{role}.json)"
+  echo "  - Seed IDs: import from data.fixture.ts, don't hardcode UUIDs"
   exit 1
 fi
 
