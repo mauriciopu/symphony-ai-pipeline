@@ -49,5 +49,22 @@
     "seed_fixture_file": "e2e/fixtures/data.fixture.ts",
     "auth_storage_dir": ".auth/",
     "bad_property_id_pattern": "b0000000-0000-0000-0000-"
+  },
+  "research": {
+    "report_path": "docs/stack-research-report.json",
+    "report_md_path": "docs/stack-research-report.md",
+    "auto_search_skills_sh": true,
+    "deployment_target": null
+  },
+  "external_skills": {
+    "installed": [],
+    "recommended": [],
+    "notes": "Populated by /research-stack. Manual entries also supported."
+  },
+  "mcps": {
+    "required": ["linear", "github"],
+    "optional": ["supabase", "playwright", "context7"],
+    "recommended_by_research": [],
+    "notes": "recommended_by_research populated by /research-stack"
   }
 }

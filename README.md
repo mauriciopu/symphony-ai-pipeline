@@ -23,6 +23,8 @@ Symphony is a **methodology + harness** for AI-driven software development. It p
     v
 Phase 0: MCP Health Check -----> ABORT if any MCP down
     |
+Phase 0.5: Stack Research ------> Load deployment concerns + skill rules (optional)
+    |
 Phase 1: Load Context ----------> Read plan, fetch Linear hierarchy
     |
 Phase 1.5: Coverage Gate -------> Verify tasks exist + plan coverage
@@ -162,7 +164,10 @@ claude --dangerously-skip-permissions "/session-init"
 # Check project health
 claude --dangerously-skip-permissions "/harness-check"
 
-# Provision tasks from a plan
+# (Optional) Research your stack — discovers skills, MCPs, deployment concerns
+claude --dangerously-skip-permissions "/research-stack"
+
+# Provision tasks from a plan (auto-consumes research report if it exists)
 claude --dangerously-skip-permissions "/create-unit-tasks u09-inventory"
 
 # Execute a unit pipeline (this is the main autonomous run)

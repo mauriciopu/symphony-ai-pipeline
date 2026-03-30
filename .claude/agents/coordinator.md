@@ -90,6 +90,26 @@ This shows exactly where the pipeline stopped. Resume from that phase.
 
 ## Pipeline Flow per Unit (6 MANDATORY Phases)
 
+### Phase 0.5: Stack Research Context (INFORMATIVE — not blocking)
+
+After MCP health check passes, load the Stack Research Report if it exists:
+
+1. Check if `docs/stack-research-report.json` exists in the project
+2. If it exists:
+   - Read `deployment_concerns` with severity "high"
+   - Read `recommended_skills` (installed ones)
+   - Log: "Stack research loaded: {N} concerns, {M} skills"
+   - Store in session context for use when delegating to coder agents
+3. If it doesn't exist:
+   - Log: "No stack research report found — skipping Phase 0.5"
+   - This is NOT an error — the pipeline works without it
+
+4. Check `symphony.config.json` for `external_skills.installed`:
+   - For each installed skill, verify it's accessible
+   - WARN if a listed skill is not found (do not ABORT)
+
+> This phase is informative. It enriches coder prompts with deployment best practices but never blocks the pipeline.
+
 ### Phase 1: Load Context
 **State transition**: `node .claude/hooks/pipeline-advance.js advance phase1_discovery`
 1. Fetch unit's epic issue from Linear (status, children)
@@ -159,6 +179,13 @@ The coordinator iterates **Stories**, then **Tasks within each Story**.
   1. Task description from Linear (cold-start)
   2. Role/expertise profile matching this unit
   3. File paths to create/modify
+  4. **Deployment context** (if Phase 0.5 loaded a research report):
+     ```markdown
+     ## Deployment Context (from Stack Research)
+     - {concern title}: {description}
+     - Installed skill rules: {applicable rules for this task's files}
+     ```
+     Only include concerns relevant to this task's file types (API routes → serverless concerns, UI → bundle size concerns, DB → connection pooling concerns).
 - Coder writes tests FIRST (TDD), then implementation
 
 #### Step C — Tester: Validate (5 gates) — MANDATORY, NEVER SKIP

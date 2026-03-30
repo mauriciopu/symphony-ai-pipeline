@@ -26,6 +26,10 @@ Each task is self-contained with full context, explicit scope boundaries, and va
 1. Locate and read the code generation plan
 2. Read design documents if they exist
 3. Resolve the tracker team
+4. **Stack Research Report** (optional): If `docs/stack-research-report.json` exists, read it and extract:
+   - `deployment_concerns` — issues to reference in relevant tasks
+   - `recommended_skills` (installed ones) — rules to cite in task descriptions
+   - If the report doesn't exist, skip this sub-step (pipeline works without it)
 
 ### Step 2: Parse the Plan
 1. Extract all steps with file paths
@@ -112,6 +116,21 @@ Which Gherkin scenarios from USER-STORIES.md this task's E2E tests cover.
 
 This mapping ensures every user story is covered by at least one E2E test, and every test knows which testIDs to assert on.
 
+#### D. Stack Best Practices (from Research Report)
+
+If `docs/stack-research-report.json` was loaded in Step 1.4, include relevant deployment concerns and skill rules for this task:
+
+```markdown
+## Stack Best Practices
+- **Deployment concerns**: DC-004 (Prisma connection pooling — use Accelerate or PgBouncer for serverless)
+- **Installed skills**: vercel-react-best-practices (server-side caching rules apply)
+- **Key rules**: Use `unstable_cache` for expensive DB queries; avoid top-level DB connections in serverless functions
+```
+
+Only include concerns that are **relevant to this specific task's files and module**. A task creating UI components doesn't need Prisma pooling warnings. A task creating API routes does.
+
+If no research report exists, omit this section entirely.
+
 ### Step 5: Symphony Readiness Checklist
 Before creating:
 - [ ] Every plan file is owned by exactly one task
@@ -121,6 +140,7 @@ Before creating:
 - [ ] Every UI task has a non-empty TestID Contract table
 - [ ] Every UI task has Test Data Assumptions referencing data.fixture.ts
 - [ ] Every UI task has BDD Scenario Mapping linking to user stories
+- [ ] If stack-research-report.json exists, deployment concerns are referenced in relevant tasks
 
 ### Step 5.5: Dependency Graph Export (for Parallel Execution)
 
