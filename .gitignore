@@ -1,7 +1,9 @@
 # State files (generated at runtime)
 .claude/pipeline-audit.jsonl
 .claude/blocked-notification.json
+.claude/aidlc-gate-token.json
 .claude/dashboard/monitor.html
+.claude/worktrees/
 
 # OS
 .DS_Store

@@ -76,6 +76,15 @@
             "command": "bash .claude/hooks/pipeline-gate.sh \"$TOOL_INPUT\""
           }
         ]
+      },
+      {
+        "matcher": "mcp__linear__save_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/aidlc-linear-gate.js \"$TOOL_INPUT\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
